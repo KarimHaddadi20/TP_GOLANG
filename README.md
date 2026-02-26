@@ -1,6 +1,6 @@
 # Projet Go - FileOps / WebOps / ProcOps
 
-## Execution
+## Procedure d'execution
 1. go run .
 2. Suivre le menu interactif.
 

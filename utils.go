@@ -19,6 +19,11 @@ func readLine(prompt string) string {
 	return strings.TrimSpace(line)
 }
 
+func confirmAction(prompt string) bool {
+	answer := strings.ToLower(readLine(prompt + " (yes/no): "))
+	return answer == "yes"
+}
+
 func readNonEmpty(prompt string) string {
 	for {
 		line := readLine(prompt)
@@ -89,4 +94,21 @@ func formatTime(t time.Time) string {
 		return "n/a"
 	}
 	return t.Format("2006-01-02 15:04:05")
+}
+
+func writeAuditLog(outDir, message string) {
+	if outDir == "" {
+		return
+	}
+	if err := ensureDir(outDir); err != nil {
+		return
+	}
+	path := filepath.Join(outDir, "audit.log")
+	line := fmt.Sprintf("%s | %s\n", time.Now().Format("2006-01-02 15:04:05"), message)
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	_, _ = file.WriteString(line)
 }

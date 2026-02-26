@@ -1,15 +1,19 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"path/filepath"
 	"strings"
 )
 
 func main() {
-	cfg, err := loadConfig("config.txt")
+	configPath := flag.String("config", "config.json", "chemin vers le fichier de config")
+	flag.Parse()
+
+	cfg, err := loadConfig(*configPath)
 	if err != nil {
-		fmt.Println("Config introuvable, utilisation des valeurs par defaut.")
+		fmt.Printf("Config introuvable (%s), utilisation des valeurs par defaut.\n", *configPath)
 	}
 
 	if err := ensureDir(cfg.OutDir); err != nil {
@@ -42,6 +46,8 @@ func main() {
 			runWikiAnalysis(cfg)
 		case "D":
 			runProcOps(cfg)
+		case "E":
+			runSecureOps(cfg)
 		case "Q":
 			fmt.Println("Fin du programme.")
 			return
@@ -60,6 +66,7 @@ func printMenu(currentFile string) {
 	fmt.Println("B) Analyse multi-fichiers")
 	fmt.Println("C) Analyser une page Wikipedia")
 	fmt.Println("D) ProcessOps")
+	fmt.Println("E) SecureOps")
 	fmt.Println("Q) Quitter")
 }
 

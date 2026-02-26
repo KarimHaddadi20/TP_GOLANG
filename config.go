@@ -1,19 +1,17 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"os"
-	"strconv"
-	"strings"
 )
 
 type Config struct {
-	DefaultFile string
-	BaseDir     string
-	OutDir      string
-	DefaultExt  string
-	WikiLang    string
-	ProcessTopN int
+	DefaultFile string `json:"default_file"`
+	BaseDir     string `json:"base_dir"`
+	OutDir      string `json:"out_dir"`
+	DefaultExt  string `json:"default_ext"`
+	WikiLang    string `json:"wiki_lang"`
+	ProcessTopN int    `json:"process_top_n"`
 }
 
 func defaultConfig() Config {
@@ -30,54 +28,32 @@ func defaultConfig() Config {
 func loadConfig(path string) (Config, error) {
 	cfg := defaultConfig()
 
-	file, err := os.Open(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return cfg, err
 	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) != 2 {
-			continue
-		}
-		key := strings.TrimSpace(parts[0])
-		val := strings.TrimSpace(parts[1])
-		switch key {
-		case "default_file":
-			if val != "" {
-				cfg.DefaultFile = val
-			}
-		case "base_dir":
-			if val != "" {
-				cfg.BaseDir = val
-			}
-		case "out_dir":
-			if val != "" {
-				cfg.OutDir = val
-			}
-		case "default_ext":
-			if val != "" {
-				cfg.DefaultExt = val
-			}
-		case "wiki_lang":
-			if val != "" {
-				cfg.WikiLang = val
-			}
-		case "process_top_n":
-			if n, err := strconv.Atoi(val); err == nil && n > 0 {
-				cfg.ProcessTopN = n
-			}
-		}
+	var raw Config
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return cfg, err
 	}
 
-	if err := scanner.Err(); err != nil {
-		return cfg, err
+	if raw.DefaultFile != "" {
+		cfg.DefaultFile = raw.DefaultFile
+	}
+	if raw.BaseDir != "" {
+		cfg.BaseDir = raw.BaseDir
+	}
+	if raw.OutDir != "" {
+		cfg.OutDir = raw.OutDir
+	}
+	if raw.DefaultExt != "" {
+		cfg.DefaultExt = raw.DefaultExt
+	}
+	if raw.WikiLang != "" {
+		cfg.WikiLang = raw.WikiLang
+	}
+	if raw.ProcessTopN > 0 {
+		cfg.ProcessTopN = raw.ProcessTopN
 	}
 	return cfg, nil
 }

@@ -50,21 +50,24 @@ func runProcOps(cfg Config) {
 			}
 			procs, _ := listProcesses(0)
 			proc, found := findProcessByPID(procs, pid)
+			procName := "unknown"
 			if found {
 				fmt.Printf("Processus: %d | %s\n", proc.PID, proc.Name)
+				procName = proc.Name
 			} else {
 				fmt.Printf("Processus: %d | (nom inconnu)\n", pid)
 			}
-			confirm := strings.ToLower(readLine("Confirmer kill (yes/no): "))
-			if confirm != "yes" {
+			if !confirmAction("Confirmer kill") {
 				fmt.Println("Annule.")
 				break
 			}
 			force := strings.ToLower(readLine("Forcer? (y/n): ")) == "y"
 			if err := killProcess(pid, force); err != nil {
 				fmt.Printf("Erreur kill: %v\n", err)
+				writeAuditLog(cfg.OutDir, fmt.Sprintf("KILL FAIL pid=%d name=%s err=%v", pid, procName, err))
 			} else {
 				fmt.Println("Kill OK.")
+				writeAuditLog(cfg.OutDir, fmt.Sprintf("KILL OK pid=%d name=%s force=%t", pid, procName, force))
 			}
 		case "0":
 			return
